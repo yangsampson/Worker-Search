@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Worker Search</title>
+    <title>Oracle Worker Management</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="app-container">
-        <h1>Worker Search</h1>
+        <h1>Oracle Worker Search</h1>
         
         <div class="search-group">
             <input type="text" id="searchInput" placeholder="Search ID, Phone, Company, Status...">
@@ -17,9 +17,10 @@
         </div>
 
         <div id="actions">
-            <button id="selectAllBtn">Select All Visible</button>
-            <button id="refreshDataBtn">Refresh Data</button>
-            <span id="lastRefreshTime">Never</span>
+            <div class="left-buttons">
+                <button id="selectAllBtn">Select All Visible</button>
+                <button id="refreshDataBtn">Refresh Data</button>
+            </div>
 
             <div id="modeToggleContainer">
                 <div class="mode-group">
@@ -28,26 +29,26 @@
                 </div>
                 <div class="mode-group">
                     <input type="checkbox" id="checkboxModeToggle">
-                    <label for="checkboxModeToggle">Order Mode</label>
+                    <label for="checkboxModeToggle">Order</label>
                 </div>
             </div>
         </div>
 
         <div id="category-actions">
-            <button class="multi-copy-btn" data-field="all">Copy All (Tabbed)</button>
+            <button class="multi-copy-btn" data-field="all">All (Tab)</button>
             <button class="multi-copy-btn" data-field="status">Status</button>
             <button class="multi-copy-btn" data-field="workerId">IDs</button>
             <button class="multi-copy-btn" data-field="displayPhoneNumber">Phones</button>
-            <button class="multi-copy-btn" data-field="companyAssigned">Companies</button>
-            <button class="multi-copy-btn" data-field="serialNumber">Serials</button>
-            <button class="multi-copy-btn" data-field="imei">IMEIs</button>
+            <button class="multi-copy-btn" data-field="companyAssigned">Co.</button>
+            <button class="multi-copy-btn" data-field="serialNumber">Serial</button>
+            <button class="multi-copy-btn" data-field="imei">IMEI</button>
         </div>
         
         <div id="selection-status">0 items selected</div>
         
         <hr>
 
-        <div id="loading" style="display:none;">Loading data...</div>
+        <div id="loading" style="display:none; text-align:center; padding:20px;">Loading Worker Data...</div>
         <div id="resultsList"></div>
     </div>
 
