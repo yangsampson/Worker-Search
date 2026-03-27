@@ -1,4 +1,6 @@
+// --- Element References ---
 const searchInput = document.getElementById('searchInput');
+const filterOutInput = document.getElementById('filterOutInput');
 const resultsList = document.getElementById('resultsList');
 const loadingIndicator = document.getElementById('loading');
 const selectAllBtn = document.getElementById('selectAllBtn');
@@ -6,70 +8,48 @@ const refreshDataBtn = document.getElementById('refreshDataBtn');
 const statusIndicator = document.getElementById('selection-status');
 const copySuccessIndicator = document.getElementById('copySuccess');
 const checkboxModeToggle = document.getElementById('checkboxModeToggle');
+const checkboxIDMode = document.getElementById('checkboxIDMode');
 const lastRefreshTimeSpan = document.getElementById('lastRefreshTime');
+const appleMesBtn = document.getElementById('appleMesBtn');
 
+// --- Application State ---
 let allData = [];
 let selectedItems = new Set();
 let dataToDisplay = [];
 let lastTimestamp = null;
 
-// --- DATA MAPPING ---
-
-function mapApiData(apiItem) {
-    const displayPhoneNumber = apiItem.phoneNumber || 'N/A';
-    return {
-        status: apiItem.status || 'N/A',
-        workerId: apiItem.id || 'UnknownID',
-        displayPhoneNumber: displayPhoneNumber,
-        phoneNumber: displayPhoneNumber.replace(/[^0-9]/g, ''),
-        companyAssigned: apiItem.assignedCompany || 'N/A',
-        serialNumber: apiItem.serialNumber || 'N/A',
-        imei: apiItem.IMEI || 'N/A'
-    };
-}
-
+const iMessages = [
+    "I sincerely need iMessage activated on my device. I rely on this feature heavily for essential family communication, and I'd be truly grateful for your quick assistance.",
+    "My iMessage activation has been difficult, and I'm asking for your help to get it working. I truly appreciate you taking the time to resolve this for me.",
+    "I urgently request help with iMessage activation. It is a crucial feature for my work communication, and I'd be very thankful if you could ensure it's successfully activated now.",
+    "Could you please look into and activate iMessage on my account? I understand you're busy, but getting this feature working is vitally important for me right now.",
+    "I am submitting this sincere request for iMessage activation. I just need this one feature finalized, and your support in getting this done means a lot."
+];
 
 // --- CORE UTILITY FUNCTIONS ---
 
-function showCopySuccess(isWarning = false) {
-    if (isWarning) {
-        copySuccessIndicator.style.backgroundColor = '#ffc107';
-        copySuccessIndicator.textContent = "Select at least one row.";
-    } else {
-        copySuccessIndicator.style.backgroundColor = '#28a745';
-        copySuccessIndicator.textContent = "Copied!";
-    }
+function showCopySuccess() {
     copySuccessIndicator.style.opacity = '1';
     setTimeout(() => {
         copySuccessIndicator.style.opacity = '0';
-    }, isWarning ? 2000 : 1500);
+    }, 1500);
 }
 
-function copyToClipboard(text, isWarning = false) {
-    if (!navigator.clipboard) {
-        // Fallback for older browsers (or insecure contexts like http://)
-        try {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            if (!isWarning) showCopySuccess();
-        } catch (err) {
-            console.error('Fallback copy failed: ', err);
-            alert('Copy failed. Check console for details.');
-        }
-        return;
+function copyToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed'; 
+    textArea.style.opacity = 0;
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        showCopySuccess();
+    } catch (err) {
+        console.error('Could not copy text: ', err);
     }
-
-    // Modern, secure way
-    navigator.clipboard.writeText(text).then(() => {
-        if (!isWarning) showCopySuccess();
-    }).catch(err => {
-        console.error('Async copy failed: ', err);
-        alert('Copy failed. Check console for details.');
-    });
+    document.body.removeChild(textArea);
 }
 
 function updateStatusIndicator() {
@@ -78,31 +58,18 @@ function updateStatusIndicator() {
 }
 
 function formatTimeAgo(timestamp) {
-    if (!timestamp) return 'Never refreshed';
-    
+    if (!timestamp) return 'Never';
     const now = Date.now();
     const seconds = Math.floor((now - timestamp) / 1000);
-
-    if (seconds < 0) return 'Error';
-
     if (seconds < 60) return `${seconds}s ago`;
-
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m ago`;
-
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
+    return `${hours}h ago`;
 }
 
 function updateLastRefreshTimeDisplay() {
-    if (lastTimestamp) {
-        lastRefreshTimeSpan.textContent = `Refresh: ${formatTimeAgo(lastTimestamp)}`;
-    } else {
-        lastRefreshTimeSpan.textContent = `Refresh: Never`;
-    }
+    lastRefreshTimeSpan.textContent = formatTimeAgo(lastTimestamp);
 }
 
 function startTimer() {
@@ -110,101 +77,103 @@ function startTimer() {
 }
 
 function getStatusClass(status) {
-    status = status.toLowerCase();
-    if (status.includes('online')) return 'status-online';
-    if (status.includes('degraded')) return 'status-degraded';
-    if (status.includes('offline')) return 'status-offline';
-    return '';
+    if (!status) return 'status-na';
+    const lowerStatus = status.toLowerCase();
+    if (lowerStatus.includes('online')) return 'status-online';
+    if (lowerStatus.includes('degraded')) return 'status-degraded';
+    if (lowerStatus.includes('offline')) return 'status-offline';
+    return 'status-na';
 }
 
-// --- DATA FETCHING & REFRESH LOGIC ---
+// --- DATA MAPPING & LOADING ---
+
+function mapApiData(apiItem) {
+    const displayPhone = apiItem.phoneNumber || 'N/A';
+    return {
+        status: apiItem.status || 'N/A',
+        workerId: apiItem.id || 'UnknownID',
+        displayPhoneNumber: displayPhone,
+        phoneNumber: displayPhone.replace(/[^0-9]/g, ''),
+        companyAssigned: apiItem.assignedCompany || 'N/A',
+        serialNumber: apiItem.serialNumber || 'N/A',
+        imei: apiItem.IMEI || 'N/A'
+    };
+}
 
 function handleRefreshData() {
     resultsList.innerHTML = '';
     allData = [];
     selectedItems.clear();
+    
     loadingIndicator.style.display = 'block';
-    updateStatusIndicator();
-    lastRefreshTimeSpan.textContent = `Refresh: Fetching...`;
-
-    // Simulate a network fetch using setTimeout
-    setTimeout(() => {
-        try {
-            // Use the global SAMPLE_API_DATA variable from sample-data.js
-            const rawJson = SAMPLE_API_DATA;
-            
-            const workersObject = rawJson.workers;
-
-            if (!workersObject || typeof workersObject !== 'object') {
-                throw new Error('Sample data missing expected "workers" object.');
-            }
-            const dataToProcess = Object.values(workersObject);
-            allData = dataToProcess.map(mapApiData);
-
-            lastTimestamp = Date.now();
-            performSearch();
-
-            if (allData.length === 0) {
-                 resultsList.textContent = 'Data loaded, but no records were mapped.';
-            }
-        } catch (error) {
-            console.error("Data Load Error:", error);
-            resultsList.textContent = `Data Load Error: ${error.message}`;
-            lastTimestamp = null;
-        } finally {
-            loadingIndicator.style.display = 'none';
-            updateLastRefreshTimeDisplay();
+    
+    try {
+        // Accessing the global object from sample-data.js
+        if (typeof SAMPLE_API_DATA === 'undefined') {
+            throw new Error('sample-data.js not loaded or SAMPLE_API_DATA is missing.');
         }
-    }, 500); // Simulate a 500ms (0.5 second) delay
-}
 
+        const workersObject = SAMPLE_API_DATA.workers;
+        allData = Object.values(workersObject).map(mapApiData);
+        
+        lastTimestamp = Date.now();
+        loadingIndicator.style.display = 'none';
+
+    } catch (error) {
+        console.error("Data load failed:", error);
+        loadingIndicator.style.display = 'none';
+        resultsList.innerHTML = `<div style="color:red; padding:10px;">Error: ${error.message}</div>`;
+    }
+    
+    performSearch();
+    updateStatusIndicator();
+}
 
 // --- SEARCH & DISPLAY LOGIC ---
 
+function getSearchableString(item) {
+    return `${item.status} ${item.workerId} ${item.phoneNumber} ${item.displayPhoneNumber} ${item.companyAssigned} ${item.serialNumber} ${item.imei}`.toLowerCase();
+}
+
 function performSearch() {
     const rawSearchTerm = searchInput.value.toLowerCase().trim();
+    const rawFilterOutTerm = filterOutInput.value.toLowerCase().trim();
     resultsList.innerHTML = '';
-    dataToDisplay = [];
     
     if (allData.length === 0) return;
 
     const isOrderMode = checkboxModeToggle.checked;
+    const isIDMode = checkboxIDMode.checked;
 
-    if (!rawSearchTerm) {
-        dataToDisplay = allData;
-    } else {
-        const searchTerms = rawSearchTerm.split(/[,|\s]+/)
-                                       .map(term => term.trim())
-                                       .filter(term => term.length > 0);
+    let filteredData = allData;
 
-        if (searchTerms.length === 0) return;
-
+    // 1. Positive Search
+    if (rawSearchTerm) {
+        const inputTerms = rawSearchTerm.split(/[,|\s]+/).filter(t => t.length > 0);
         if (isOrderMode) {
             const foundData = [];
-            const foundWorkerIds = new Set();
-
-            searchTerms.forEach(term => {
-                const foundItem = allData.find(item => {
-                    if (foundWorkerIds.has(item.workerId)) return false;
-                    
-                    const searchableString = Object.values(item).join(' ').toLowerCase();
-                    return searchableString.includes(term);
-                });
-
+            const foundIds = new Set();
+            inputTerms.forEach(term => {
+                const foundItem = allData.find(item => !foundIds.has(item.workerId) && getSearchableString(item).includes(term));
                 if (foundItem) {
                     foundData.push(foundItem);
-                    foundWorkerIds.add(foundItem.workerId);
+                    foundIds.add(foundItem.workerId);
                 }
             });
-            dataToDisplay = foundData;
+            filteredData = foundData;
         } else {
-            dataToDisplay = allData.filter(item => {
-                const searchableString = Object.values(item).join(' ').toLowerCase();
-                return searchTerms.some(term => searchableString.includes(term));
-            });
+            filteredData = allData.filter(item => inputTerms.some(term => getSearchableString(item).includes(term)));
         }
     }
-    
+
+    // 2. Filter OUT
+    if (rawFilterOutTerm) {
+        const filterOutTerms = rawFilterOutTerm.split(/[,|\s]+/).filter(t => t.length > 0);
+        filteredData = filteredData.filter(item => !filterOutTerms.some(term => getSearchableString(item).includes(term)));
+    }
+
+    dataToDisplay = filteredData;
+
     if (dataToDisplay.length > 0) {
         dataToDisplay.forEach(item => {
             const isSelected = selectedItems.has(item.workerId);
@@ -212,75 +181,44 @@ function performSearch() {
             row.className = `result-item ${isSelected ? 'selected' : ''}`;
             row.dataset.workerId = item.workerId;
             
-            // UPDATED HTML TEMPLATE START HERE
-            const statusHtml = `<span class="${getStatusClass(item.status)}">${item.status}</span>`;
-
+            const statusClass = getStatusClass(item.status);
+            
             row.innerHTML = `
                 <div class="checkbox-container">
                     <input type="checkbox" class="selection-checkbox" data-worker-id="${item.workerId}" ${isSelected ? 'checked' : ''}>
                 </div>
                 <div class="data-content">
-                    <div class="status-header" data-field="status">${statusHtml}</div>
-                    <div class="data-grid">
-                        <strong>ID:</strong> <span class="copyable-value" data-field="workerId" data-value="${item.workerId}">${item.workerId}</span>
-                        <strong>Phone:</strong> <span class="copyable-value" data-field="displayPhoneNumber" data-value="${item.displayPhoneNumber}">${item.displayPhoneNumber}</span>
-                        <strong>Company:</strong> <span class="copyable-value" data-field="companyAssigned" data-value="${item.companyAssigned}">${item.companyAssigned}</span>
-                        <strong>Serial:</strong> <span class="copyable-value" data-field="serialNumber" data-value="${item.serialNumber}">${item.serialNumber}</span>
-                        <strong>IMEI:</strong> <span class="copyable-value" data-field="imei" data-value="${item.imei}">${item.imei}</span>
-                    </div>
-                </div>
-            `;
-            // UPDATED HTML TEMPLATE END HERE
-            
+                    ${isIDMode ? `
+                        <div class="id-only-display">
+                            <span class="data-value" data-value="${item.workerId}">${item.workerId}</span>
+                            <div class="status-line ${statusClass}">${item.status}</div>
+                        </div>
+                    ` : `
+                        <div class="status-line ${statusClass}">${item.status}</div>
+                        <div class="data-grid">
+                            <strong>ID:</strong> <span class="data-value" data-value="${item.workerId}">${item.workerId}</span>
+                            <strong>Phone:</strong> <span class="data-value" data-value="${item.displayPhoneNumber}">${item.displayPhoneNumber}</span>
+                            <strong>Company:</strong> <span class="data-value" data-value="${item.companyAssigned}">${item.companyAssigned}</span>
+                            <strong>Serial:</strong> <span class="data-value" data-value="${item.serialNumber}">${item.serialNumber}</span>
+                            <strong>IMEI:</strong> <span class="data-value" data-value="${item.imei}">${item.imei}</span>
+                        </div>
+                    `}
+                </div>`;
             resultsList.appendChild(row);
         });
-
-    } else if (!rawSearchTerm && allData.length > 0) {
-        resultsList.textContent = `No results found for your search terms.`;
-    } else if (allData.length === 0) {
-        resultsList.textContent = `No data loaded. Click "Refresh Data" to begin.`;
+    } else {
+        resultsList.textContent = `No results found.`;
     }
-    
     updateStatusIndicator();
 }
 
-// --- SELECTION HANDLERS ---
-
-function selectAllVisibleItems() {
-    const visibleWorkerIds = dataToDisplay.map(item => item.workerId);
-    const allVisibleSelected = visibleWorkerIds.every(id => selectedItems.has(id));
-    
-    const shouldSelect = !allVisibleSelected;
-
-    dataToDisplay.forEach(item => {
-        const workerId = item.workerId;
-        const rowElement = resultsList.querySelector(`.result-item[data-worker-id="${workerId}"]`);
-        const checkbox = rowElement ? rowElement.querySelector('.selection-checkbox') : null;
-
-        if (checkbox) {
-            checkbox.checked = shouldSelect;
-            
-            if (shouldSelect) {
-                selectedItems.add(workerId);
-                rowElement.classList.add('selected');
-            } else {
-                selectedItems.delete(workerId);
-                rowElement.classList.remove('selected');
-            }
-        }
-    });
-
-    updateStatusIndicator();
-}
-
+// --- SELECTION & COPY HANDLERS ---
 
 function handleCheckboxChange(event) {
     const checkbox = event.target.closest('.selection-checkbox');
     if (!checkbox) return;
-
     const workerId = checkbox.dataset.workerId;
     const row = checkbox.closest('.result-item');
-
     if (checkbox.checked) {
         selectedItems.add(workerId);
         row.classList.add('selected');
@@ -291,103 +229,72 @@ function handleCheckboxChange(event) {
     updateStatusIndicator();
 }
 
-function handleCopyableClick(event) {
-    const valueSpan = event.target.closest('.copyable-value');
-    if (!valueSpan) return;
-    
-    event.stopPropagation();
-
-    const fieldKey = valueSpan.dataset.field;
-    let valueToCopy = valueSpan.dataset.value;
-
-    if (fieldKey === 'displayPhoneNumber') {
-        if (valueToCopy.startsWith('+1')) {
-            valueToCopy = valueToCopy.substring(2).trim();
-        } else if (valueToCopy.startsWith('+')) {
-            valueToCopy = valueToCopy.substring(1).trim();
+function handleRowClick(event) {
+    const valueSpan = event.target.closest('.data-value');
+    if (valueSpan) {
+        event.stopPropagation();
+        let val = valueSpan.dataset.value;
+        // Strip prefixes on copy
+        if (valueSpan.dataset.value === item?.displayPhoneNumber) {
+             val = val.replace(/^\+1|^\+/, '').trim();
         }
-    }
-    
-    copyToClipboard(valueToCopy);
-}
-
-// --- BULK COPY LOGIC ---
-
-function copySelectedData(field) {
-    if (selectedItems.size === 0) {
-        showCopySuccess(true);
+        copyToClipboard(val);
         return;
     }
 
-    const selectedData = allData.filter(item => selectedItems.has(item.workerId));
+    const row = event.target.closest('.result-item');
+    if (row && !event.target.closest('input[type="checkbox"]')) {
+        const cb = row.querySelector('.selection-checkbox');
+        cb.checked = !cb.checked;
+        handleCheckboxChange({ target: cb });
+    }
+}
+
+function copySelectedData(field) {
+    if (selectedItems.size === 0) return;
+    const selectedData = dataToDisplay.filter(item => selectedItems.has(item.workerId));
     let output = '';
 
     if (field === 'all') {
         output = selectedData.map(item => {
-            let phone = item.displayPhoneNumber || '';
-            if (phone.startsWith('+1')) {
-                phone = phone.substring(2).trim();
-            } else if (phone.startsWith('+')) {
-                phone = phone.substring(1).trim();
-            }
+            const phone = item.displayPhoneNumber.replace(/^\+1|^\+/, '').trim();
             return `${item.workerId}\t${phone}\t${item.serialNumber}`;
         }).join('\n');
     } else if (field === 'displayPhoneNumber') {
-        output = selectedData.map(item => {
-            let phone = item[field] || '';
-            if (phone.startsWith('+1')) {
-                phone = phone.substring(2).trim();
-            } else if (phone.startsWith('+')) {
-                phone = phone.substring(1).trim();
-            }
-            return phone;
-        }).join('\n');
-    } else if (field === 'status') {
-         output = selectedData.map(item => item.status).join('\n');
+        output = selectedData.map(item => item[field].replace(/^\+1|^\+/, '').trim()).join('\n');
     } else {
         output = selectedData.map(item => item[field] || '').join('\n');
     }
-    
     copyToClipboard(output);
 }
 
-
-function handleCategoryCopyClick(event) {
-    const button = event.target.closest('.multi-copy-btn');
-    if (button) {
-        const fieldKey = button.dataset.field;
-        copySelectedData(fieldKey);
-    }
-}
-
 // --- EVENT LISTENERS ---
-
-resultsList.addEventListener('click', (e) => {
-    handleCopyableClick(e);
-    
-    const row = e.target.closest('.result-item');
-    if (row && !e.target.closest('input[type="checkbox"]')) {
-        const checkbox = row.querySelector('.selection-checkbox');
-        if (checkbox) {
-            checkbox.checked = !checkbox.checked;
-            const event = new Event('change', { bubbles: true });
-            checkbox.dispatchEvent(event);
-        }
-    }
+resultsList.addEventListener('click', handleRowClick);
+resultsList.addEventListener('change', handleCheckboxChange);
+searchInput.addEventListener('input', performSearch);
+filterOutInput.addEventListener('input', performSearch);
+selectAllBtn.addEventListener('click', () => {
+    const allSel = dataToDisplay.every(i => selectedItems.has(i.workerId));
+    dataToDisplay.forEach(i => {
+        selectedItems[allSel ? 'delete' : 'add'](i.workerId);
+    });
+    performSearch();
 });
 
-resultsList.addEventListener('change', handleCheckboxChange);
-
-searchInput.addEventListener('input', performSearch);
-selectAllBtn.addEventListener('click', selectAllVisibleItems);
 checkboxModeToggle.addEventListener('change', performSearch);
+checkboxIDMode.addEventListener('change', performSearch);
 refreshDataBtn.addEventListener('click', handleRefreshData);
 
-document.querySelectorAll('.multi-copy-btn').forEach(button => {
-    button.addEventListener('click', handleCategoryCopyClick);
+appleMesBtn.addEventListener('click', () => {
+    copyToClipboard(iMessages[Math.floor(Math.random() * iMessages.length)]);
 });
 
-// --- INITIALIZE APP ---
-// (These run after the DOM is parsed because of the 'defer' attribute on the script tag)
-startTimer();
-performSearch();
+document.querySelectorAll('.multi-copy-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => copySelectedData(e.target.dataset.field));
+});
+
+// --- INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    startTimer();
+    handleRefreshData();
+});
