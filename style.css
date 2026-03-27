@@ -91,9 +91,6 @@ button:hover {
 #refreshDataBtn { background-color: #e6ffed; border-color: #b7e1c1; }
 #refreshDataBtn:hover { background-color: #d1f7da; }
 
-#appleMesBtn { background-color: #ffe6e6; border-color: #e1b7b7; }
-#appleMesBtn:hover { background-color: #f7d1d1; }
-
 #lastRefreshTime { font-size: 12px; color: #777; }
 
 #modeToggleContainer {
