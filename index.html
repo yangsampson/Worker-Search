@@ -2,57 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Worker Search</title>
+    <title>Oracle Worker Management Portal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="main-window">
-        <header>
-            <h1>Worker Search</h1>
-            <div class="refresh-area">
-                <button id="refreshDataBtn">Refresh Data</button>
-                <span id="lastRefreshTime">Never</span>
-            </div>
-        </header>
+    <div id="app-container">
+        <h1>Oracle Worker Search</h1>
+        
+        <div class="search-group">
+            <input type="text" id="searchInput" placeholder="Search ID, Phone, Company, Status...">
+            <input type="text" id="filterOutInput" placeholder="Filter OUT (Ex: Offline, TechCorp)">
+        </div>
 
-        <section id="controls">
-            <div class="search-group">
-                <input type="text" id="searchInput" placeholder="Search ID, Phone, Company, Status...">
-                <input type="text" id="filterOutInput" placeholder="Filter OUT (Ex: Offline, TechCorp)">
-            </div>
+        <div id="actions">
+            <button id="selectAllBtn">Select All Visible</button>
+            <button id="refreshDataBtn">Refresh Data</button>
+            <span id="lastRefreshTime">Never</span>
 
-            <div id="action-bar">
-                <div class="left-actions">
-                    <button id="selectAllBtn">Select All Visible</button>
-                    <button id="appleMesBtn" type="button">Copy Apple Message</button>
+            <div id="modeToggleContainer">
+                <div class="mode-group">
+                    <input type="checkbox" id="checkboxIDMode">
+                    <label for="checkboxIDMode">ID Mode</label>
                 </div>
-
-                <div id="modeToggleContainer">
-                    <div class="mode-group">
-                        <input type="checkbox" id="checkboxIDMode">
-                        <label for="checkboxIDMode">ID Mode</label>
-                    </div>
-                    <div class="mode-group">
-                        <input type="checkbox" id="checkboxModeToggle">
-                        <label for="checkboxModeToggle">Order Mode</label>
-                    </div>
+                <div class="mode-group">
+                    <input type="checkbox" id="checkboxModeToggle">
+                    <label for="checkboxModeToggle">Order Mode</label>
                 </div>
             </div>
+        </div>
 
-            <div id="bulk-copy-grid">
-                <button class="multi-copy-btn" data-field="all">Copy All (Tabbed)</button>
-                <button class="multi-copy-btn" data-field="status">Status</button>
-                <button class="multi-copy-btn" data-field="workerId">IDs</button>
-                <button class="multi-copy-btn" data-field="displayPhoneNumber">Phones</button>
-                <button class="multi-copy-btn" data-field="companyAssigned">Companies</button>
-                <button class="multi-copy-btn" data-field="serialNumber">Serials</button>
-                <button class="multi-copy-btn" data-field="imei">IMEIs</button>
-            </div>
-            
-            <div id="selection-status">0 items selected</div>
-        </section>
+        <div id="category-actions">
+            <button class="multi-copy-btn" data-field="all">Copy All (Tabbed)</button>
+            <button class="multi-copy-btn" data-field="status">Status</button>
+            <button class="multi-copy-btn" data-field="workerId">IDs</button>
+            <button class="multi-copy-btn" data-field="displayPhoneNumber">Phones</button>
+            <button class="multi-copy-btn" data-field="companyAssigned">Companies</button>
+            <button class="multi-copy-btn" data-field="serialNumber">Serials</button>
+            <button class="multi-copy-btn" data-field="imei">IMEIs</button>
+        </div>
+        
+        <div id="selection-status">0 items selected</div>
         
         <hr>
 
