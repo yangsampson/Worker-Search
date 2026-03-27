@@ -1,209 +1,217 @@
-/* --- Global Styles --- */
+/* --- Global Resets --- */
 body {
     display: flex;
     justify-content: center;
     align-items: flex-start;
     min-height: 100vh;
     margin: 0;
-    padding: 40px 20px; /* More breathing room for a webpage */
-    background-color: #f8f9fa; /* Softer professional gray */
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    box-sizing: border-box;
+    padding: 40px 20px;
+    background-color: #f4f7f6; /* Modern light gray */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #333;
 }
 
 /* --- Main Webpage Container --- */
 #app-container {
     width: 100%;
-    max-width: 900px; /* Expanded for a full-page feel */
+    max-width: 550px; /* Constrained width to prevent the 'stretched' look */
     background-color: #ffffff;
     border-radius: 12px;
-    padding: 30px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05); /* Softer shadow */
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    border: 1px solid #e1e4e8;
 }
 
-h1, h3 {
+h1 {
+    font-size: 22px;
     text-align: center;
-    margin-top: 0;
-    color: #333;
+    margin-bottom: 20px;
+    color: #1a1a1a;
 }
 
-/* --- Inputs --- */
+/* --- Search Area --- */
 .search-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Side-by-side search on wide screens */
-    gap: 15px;
-    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
 }
 
 #searchInput, #filterOutInput {
     width: 100%;
-    padding: 12px 15px;
+    padding: 10px 14px;
     box-sizing: border-box;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 15px;
-    transition: border-color 0.2s;
+    border: 1px solid #d1d5da;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 #searchInput:focus, #filterOutInput:focus {
-    border-color: #007bff;
+    border-color: #0366d6;
     outline: none;
+    box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.1);
 }
 
-/* --- Actions Bar --- */
+/* --- Action Bar (Select All, Refresh, Toggles) --- */
 #actions {
-    margin-bottom: 20px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    justify-content: space-between; /* Pushes buttons left, toggles right */
     align-items: center;
-    background: #fdfdfd;
-    padding: 10px;
-    border-radius: 8px;
+    margin-bottom: 15px;
+    padding: 8px 0;
 }
 
-/* --- Bulk Copy Grid --- */
+.left-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+#modeToggleContainer {
+    display: flex;
+    gap: 12px;
+    font-size: 13px;
+    color: #586069;
+}
+
+.mode-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* --- Bulk Copy Grid (The Row of Buttons) --- */
 #category-actions {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); /* Grid layout for web */
-    gap: 10px;
-    border-top: 1px solid #eee;
-    padding-top: 20px;
-    margin-bottom: 20px;
+    /* Auto-adjusts columns now that Apple button is gone */
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); 
+    gap: 6px;
+    border-top: 1px solid #eaecef;
+    padding-top: 15px;
+    margin-bottom: 10px;
 }
 
-/* --- Buttons --- */
-button, .button-like {
-    padding: 10px 15px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    background-color: #fff;
+/* --- Button Styling --- */
+button {
+    padding: 7px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid #d1d5da;
+    background-color: #fafbfc;
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.1s ease;
 }
 
 button:hover {
-    background-color: #f0f0f0;
-    transform: translateY(-1px);
+    background-color: #f3f4f6;
+    border-color: #1b1f2326;
 }
 
-#refreshDataBtn { background-color: #e6ffed; border-color: #b7e1c1; }
-#refreshDataBtn:hover { background-color: #d1f7da; }
+#refreshDataBtn { background-color: #f0fff4; border-color: #34d0584d; color: #22863a; }
+#refreshDataBtn:hover { background-color: #dcffe4; }
 
-#lastRefreshTime { font-size: 12px; color: #777; }
-
-#modeToggleContainer {
-    margin-left: auto;
-    display: flex;
-    gap: 15px;
-    font-size: 14px;
+.multi-copy-btn {
+    background-color: #ffffff;
 }
 
 #selection-status {
-    font-size: 13px;
-    color: #666;
-    font-weight: bold;
-    margin-top: 10px;
+    font-size: 12px;
+    color: #6a737d;
     text-align: right;
+    margin-bottom: 15px;
 }
 
 /* --- Results List --- */
 #resultsList {
-    margin-top: 10px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #eaecef;
 }
 
-/* Card-style result items for a better web feel */
 .result-item {
-    background: #fff;
-    border: 1px solid #eee;
-    margin-bottom: 10px;
-    padding: 15px;
-    border-radius: 10px;
     display: flex;
     align-items: center;
-    transition: background 0.2s, border-color 0.2s;
+    padding: 12px 10px;
+    border-bottom: 1px solid #f6f8fa;
+    transition: background-color 0.2s;
 }
 
 .result-item:hover {
-    border-color: #007bff55;
+    background-color: #fbfbfc;
 }
 
 .result-item.selected {
-    background-color: #f0f7ff;
-    border-color: #007bff;
+    background-color: #f1f8ff;
 }
 
 .checkbox-container {
-    padding-right: 20px;
+    margin-right: 15px;
 }
 
 .data-content {
     flex-grow: 1;
 }
 
+/* --- Data Grid & Status --- */
 .status-line {
-    font-weight: 800;
-    font-size: 12px;
+    font-size: 11px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 10px;
+    margin-bottom: 4px;
 }
 
-/* Two-column data layout for wider screens */
 .data-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 8px 20px;
-    width: 100%;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 15px;
 }
 
 .grid-entry {
+    font-size: 13px;
     display: flex;
-    gap: 10px;
+    gap: 6px;
 }
 
 .grid-entry strong {
-    min-width: 60px;
-    color: #888;
-    font-size: 12px;
+    color: #6a737d;
+    min-width: 45px;
 }
 
 .data-value {
-    font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', monospace;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    color: #0366d6;
     cursor: pointer;
-    color: #0056b3;
-    font-size: 14px;
 }
 
 .data-value:hover {
     text-decoration: underline;
-    background-color: #e9ecef;
+}
+
+/* ID Mode Layout */
+.id-only-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 /* Status Colors */
 .status-online { color: #28a745; }
-.status-degraded { color: #fd7e14; }
-.status-offline { color: #dc3545; }
+.status-degraded { color: #dbab09; }
+.status-offline { color: #d73a49; }
 
-/* Copy Success Popup */
+/* Feedback Toast */
 #copySuccess {
     position: fixed;
-    bottom: 30px; /* Moved to bottom for web experience */
+    bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #333;
-    color: white;
-    padding: 12px 25px;
-    border-radius: 30px;
-    z-index: 10000;
-    transition: opacity 0.3s;
+    background-color: #24292e;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
     opacity: 0;
-}
-
-/* Responsive adjustments */
-@media (max-width: 600px) {
-    .search-group { grid-template-columns: 1fr; }
-    #modeToggleContainer { width: 100%; margin-top: 10px; justify-content: center; }
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 9999;
 }
