@@ -29,6 +29,7 @@ export default function Home() {
         workerId: item.workerId || item.id || item._id?.toString() || 'N/A',
         displayPhoneNumber: item.displayPhoneNumber || item.phoneNumber || 'N/A',
         company: item.company || item.assignedCompany || 'N/A', 
+        serialNumber: item.serialNumber || 'N/A', // Data kept for copying
         imei: item.imei || item.IMEI || 'N/A'
       }));
       
@@ -53,7 +54,7 @@ export default function Home() {
     let result = allData.filter(item => {
       const hayStack = [
         item.workerId, item.status, item.company, 
-        item.displayPhoneNumber, item.imei
+        item.displayPhoneNumber, item.imei, item.serialNumber
       ].join(' ').toLowerCase();
 
       const matchesSearch = sTerms.length === 0 || sTerms.some(term => hayStack.includes(term));
@@ -78,11 +79,37 @@ export default function Home() {
     });
   };
 
+  const handleToggleSelect = () => {
+    const allVisibleSelected = dataToDisplay.length > 0 && 
+      dataToDisplay.every(item => selectedItems.has(item.workerId));
+
+    const newSelection = new Set(selectedItems);
+    if (allVisibleSelected) {
+      dataToDisplay.forEach(item => newSelection.delete(item.workerId));
+    } else {
+      dataToDisplay.forEach(item => newSelection.add(item.workerId));
+    }
+    setSelectedItems(newSelection);
+  };
+
   const toggleItem = (id: string) => {
     const newSelection = new Set(selectedItems);
     if (newSelection.has(id)) newSelection.delete(id);
     else newSelection.add(id);
     setSelectedItems(newSelection);
+  };
+
+  const handleMultiCopy = (field: string) => {
+    const selected = allData.filter(i => selectedItems.has(i.workerId));
+    if (selected.length === 0) return;
+
+    const output = selected.map((i: any) => {
+      // Updated Multi-Copy Logic to include Serial Number
+      if (field === 'all') return `${i.workerId}\t${i.displayPhoneNumber}\t${i.serialNumber}`;
+      return i[field as keyof typeof i] || "N/A";
+    }).join('\n');
+    
+    copyToClipboard(output);
   };
 
   const getStatusStyle = (status: string) => {
@@ -118,7 +145,7 @@ export default function Home() {
           <div className="flex flex-wrap items-center justify-between gap-6 p-5 bg-white dark:bg-zinc-900 rounded-2xl border dark:border-zinc-800 shadow-sm">
             <div className="flex gap-3">
               <button 
-                onClick={() => setSelectedItems(isAllSelected ? new Set() : new Set(dataToDisplay.map(i => i.workerId)))} 
+                onClick={handleToggleSelect} 
                 className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm ${isAllSelected ? 'bg-zinc-800 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
               >
                 {isAllSelected ? 'Clear All' : 'Select Visible'}
@@ -146,6 +173,15 @@ export default function Home() {
           </div>
         </header>
 
+        {/* Multi-Copy Bar (Includes Serial and All) */}
+        <div className="flex flex-wrap gap-3 mb-8">
+          {['all', 'status', 'workerId', 'displayPhoneNumber', 'company', 'serialNumber', 'imei'].map(field => (
+            <button key={field} onClick={() => handleMultiCopy(field)} className="px-4 py-2 bg-zinc-200 dark:bg-zinc-800 rounded-lg text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+              {field.replace('display', '').replace('worker', '')}
+            </button>
+          ))}
+        </div>
+
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-32 opacity-50">
              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-6"></div>
@@ -160,33 +196,27 @@ export default function Home() {
                   key={item.workerId}
                   onClick={() => toggleItem(item.workerId)}
                   className={`border-2 transition-all cursor-pointer w-full bg-white dark:bg-zinc-900 overflow-hidden shadow-sm p-4 rounded-xl flex ${
-                    viewMode === "row" 
-                      ? "flex-wrap items-center gap-y-4" 
-                      : "flex-col p-5"
+                    viewMode === "row" ? "flex-wrap items-center gap-y-4" : "flex-col p-5"
                   } ${
                     isSelected ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20' : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300'
                   }`}
                 >
-                  {/* HEADER SECTION: Status, Checkbox, ID */}
+                  {/* Header: Status, Checkbox, ID */}
                   <div className={`flex items-center ${viewMode === "row" ? "gap-6 mr-10" : "gap-4 mb-4"}`}>
                     <input type="checkbox" checked={isSelected} readOnly className="w-5 h-5 rounded-md border-zinc-300 flex-shrink-0" />
-                    
                     <div className="flex items-center gap-4">
                       <div className="w-20 flex-shrink-0">
                         <span className={`text-[8px] font-black px-2 py-1.5 rounded-lg border-2 uppercase text-center block tracking-widest ${getStatusStyle(item.status)}`}>
                           {item.status}
                         </span>
                       </div>
-                      
-                      {/* ID stays visible in both modes */}
                       <span 
                         className="text-sm font-black text-blue-600 hover:underline cursor-copy tracking-tight"
                         onClick={(e) => { e.stopPropagation(); copyToClipboard(item.workerId); }}
                       >
                         {item.workerId}
                       </span>
-
-                      {/* Row-specific Company Placement (Tight with ID) */}
+                      {/* Row-specific Company Placement */}
                       {viewMode === "row" && !idMode && (
                          <p className="text-sm font-black truncate hover:text-blue-500 transition-colors" onClick={(e) => { e.stopPropagation(); copyToClipboard(item.company); }}>
                             <span className="text-zinc-400 uppercase text-[9px] mr-1 font-black">co:</span>
@@ -196,14 +226,13 @@ export default function Home() {
                     </div>
                   </div>
                   
-                  {/* INFO SECTION: Company (for Grid), Phone, IMEI */}
+                  {/* Info Section: Company (Grid), Phone, IMEI (Serial hidden visually) */}
                   {!idMode && (
                     <div className={`flex ${viewMode === "row" 
                       ? "flex-wrap items-center gap-x-10 gap-y-2" 
                       : "flex-col gap-3 pt-4 border-t dark:border-zinc-800"
                     } text-sm font-black`}>
                       
-                      {/* Company: Only shows here in Grid view since it's grouped with ID in Row view */}
                       {viewMode === "grid" && (
                         <p className="truncate hover:text-blue-500 transition-colors" onClick={(e) => { e.stopPropagation(); copyToClipboard(item.company); }}>
                           <span className="text-zinc-400 uppercase text-[9px] mr-2 font-black">Co:</span>
