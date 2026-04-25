@@ -1,64 +1,51 @@
-# Fleet Watch
+# FleetWatch
 
-https://yangsampson.github.io/Worker-Search/
+**FleetWatch** is a high-density management dashboard designed for real-time worker monitoring and device tracking. This repository showcases the evolution from a static frontend prototype to a full-stack, mobile-responsive application.
 
-A simple, client-side search and filter tool for viewing worker statuses and copying relevant data. Built with vanilla HTML, CSS, and JavaScript.
+---
 
-(Replace the link above with your own GitHub Pages link after you deploy it!)
+## 🚀 Live Deployments
 
-📸 Screenshot
-Here is the layout for each worker item in the list:
+* **Production (v2):** [View Live App](https://fleet-watch-v2.vercel.app) — *Built with Next.js, React, & MongoDB Atlas.*
+* **Legacy Prototype (v1):** [View Comparison](https://sampsonyang.github.io/fleet-watch-v2/) — *Static HTML/JS prototype.*
 
-✨ Features
-Dynamic Search: Instantly filter the list by ID, Phone, Company, Serial, or IMEI as you type.
+---
 
-Order Mode: Search for multiple items (separated by a space) and preserve their exact order in the results.
+## 🔄 The Technical Evolution
 
-Data Selection:
+This project marks a complete migration from a "mock data" architecture to a persistent, server-side infrastructure.
 
-Click anywhere on a row to select/deselect it.
+### Version Comparison
 
-Use checkboxes for individual selection.
+| Feature | Legacy Version (`v1`) | Modern Version (`v2`) |
+| :--- | :--- | :--- |
+| **Tech Stack** | Vanilla HTML / CSS / JS | **Next.js 15 / React / TypeScript** |
+| **Data Engine** | Static `sample-data.ts` | **Live MongoDB Atlas Database** |
+| **Styling** | Custom CSS | **Tailwind CSS (Utility-First)** |
+| **Backend** | N/A | **Next.js Serverless API Routes** |
+| **Search Logic** | Simple string match | **Multi-term space-separated filtering** |
+| **Responsiveness** | Basic Desktop | **Fluid Mobile-First Grid** |
 
-Use the "Select All" button to toggle all visible items.
+---
 
-Bulk Copy:
+## 🛠️ Key Enhancements in v2
 
-Select multiple items and copy data by category (All, Status, IDs, Phones, etc.).
+* **Dynamic Data Sync:** Real-time fetching via MongoDB, ensuring worker statuses and IDs are always accurate and persistent.
+* **Advanced Multi-Filter:** The search engine allows for complex queries (e.g., searching for a specific company and a status like "Offline" simultaneously).
+* **High-Density "ID Mode":** A UI toggle that optimizes the layout for monitoring large fleets by collapsing details into a compact view.
+* **Refined Selection Engine:** A modernized selection UI with bulk "copy-to-clipboard" functionality for specific data fields (IDs, Phones, or full tab-separated rows).
+* **Semantic Status UI:** Improved visual feedback with custom status styles, including a dedicated yellow warning state for "Degraded" workers.
 
-The "All" button formats data with tabs for easy pasting into spreadsheets.
+---
 
-Single-Click Copy: Click on any individual piece of data (like an ID or Phone Number) to copy it instantly.
+## 📂 Project Structure
 
-Status Highlighting: Worker statuses (Online, Degraded, Offline) are color-coded for quick visibility.
-
-Refresh Timer: A "Last refresh" timer shows how long it's been since the data was loaded.
-
-🚀 How to Use
-Click the Refresh Data button to load the sample dataset.
-
-Use the search bar at the top to filter the results.
-
-Click on items in the list to select them.
-
-Use the buttons in the "actions" panel to copy the data you need.
-
-💻 Technologies Used
-HTML5: For the application structure.
-
-CSS3: For all styling, including Flexbox and Grid layouts.
-
-JavaScript (ES6+): For all application logic, including search, filtering, and DOM manipulation.
-
-🛠️ How to Run Locally
-This project has no external dependencies. You can run it locally in two simple steps:
-
-Clone or Download the Repository:
-
-Bash
-
-git clone https://github.com/syang48/Worker-Search.git
-(Or, you can download the project as a ZIP file and extract it.)
-
-Open the File: Navigate to the project folder and double-click the index.html file to open it in your web browser.
-
+```text
+.
+├── app/                # Next.js App Router (React & API)
+│   ├── api/workers/    # Backend: MongoDB Serverless Logic
+│   └── page.tsx        # Frontend: Main Dashboard UI
+├── legacy-v1/          # Original Static Files (v1)
+├── public/             # Static Assets (Images/Icons)
+├── .github/workflows/  # Automation: GitHub Actions for Legacy deployment
+└── package.json        # Project Dependencies
