@@ -6,8 +6,8 @@
 
 ## 🚀 Live Deployments
 
-* **Modern Version (v2):** [View Live App](https://fleet-watch-v2.vercel.app) — *Built with Next.js, React, & MongoDB Atlas.*
-* **Legacy Prototype (v1):** [View Comparison](https://sampsonyang.github.io/fleet-watch-v2/) — *Static HTML/JS prototype.*
+* **Modern Version (v2):** [View Live App](https://fleet-watch-nu.vercel.app/)) — *Built with Next.js, React, & MongoDB Atlas.*
+* **Legacy Prototype (v1):** [View Comparison](https://yangsampson.github.io/FleetWatch/)) — *Static HTML/JS prototype.*
 
 ---
 
